@@ -1,0 +1,10 @@
+﻿  cbu2.c
+/cbu2.c(1306,16): warning C4013: 'yylex' undefined; assuming extern returning int
+/cbu2.c(1490,7): warning C4013: 'yyerror' undefined; assuming extern returning int
+/cbu2.y(84,10): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+/cbu2.y(90,5): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  cbu2lex.c
+/cbu2.l(31,33): warning C4013: 'MakeNode' undefined; assuming extern returning int
+/cbu2.l(32,2): error C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+/cbu2.l(45,3): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  Generating Code...
