@@ -17,7 +17,9 @@ void yyerror(const char *s);
 %token <ival> NUMBER
 %token <sval> IDENTIFIER
 %token ASSIGN PLUS MINUS MUL DIV SEMICOLON LPAREN RPAREN RETURN
+%token IF ELSE EQ LT GT LBRACE RBRACE
 
+%left EQ LT GT
 %left PLUS MINUS
 %left MUL DIV
 
@@ -39,23 +41,30 @@ statement:
             sym_declare($1);
             offset = sym_get_offset($1);
         }
-        // Expression result is on stack. Pop into RAX.
         emit_pop_rax();
-        // Mov [rbp-offset], rax
         emit_mov_var_rax(offset);
     }
     | RETURN expression SEMICOLON {
-        // Expression result is on stack. Pop into RAX.
         emit_pop_rax();
-        // Epilogue and ret are handled by cg_epilogue() generally,
-        // but if we return early, we need to jump to epilogue or duplicate it.
-        // For this simple compiler, we can just emit epilogue here too, 
-        // as long as we are NOT in the middle of another function.
-        // Since we only have a main script, this is fine.
         cg_epilogue(); 
-        // We need to stop execution here?
-        // emit_ret() is inside cg_epilogue.
     }
+    | IF LPAREN expression RPAREN {
+        emit_pop_rax();
+        emit_test_rax_rax();
+        $<ival>$ = emit_jz_placeholder(); // JZ to else/end
+    } statement {
+        $<ival>$ = emit_jmp_placeholder(); // JMP to end
+        patch_jump_to_current($<ival>5);   // Patch JZ to here (start of else)
+    } else_part {
+        patch_jump_to_current($<ival>7);   // Patch JMP to here (end)
+    }
+    | LBRACE statements RBRACE {
+    }
+    ;
+
+else_part:
+    ELSE statement
+    | /* empty */
     ;
 
 expression:
@@ -96,8 +105,28 @@ expression:
         emit_idiv_rax_rbx();
         emit_push_rax();
     }
+    | expression EQ expression {
+        emit_pop_rbx();
+        emit_pop_rax();
+        emit_cmp_rax_rbx();
+        emit_set_eq();
+        emit_push_rax();
+    }
+    | expression LT expression {
+        emit_pop_rbx();
+        emit_pop_rax();
+        emit_cmp_rax_rbx();
+        emit_set_lt();
+        emit_push_rax();
+    }
+    | expression GT expression {
+        emit_pop_rbx();
+        emit_pop_rax();
+        emit_cmp_rax_rbx();
+        emit_set_gt();
+        emit_push_rax();
+    }
     | LPAREN expression RPAREN {
-        // limit: nothing to do, value is already on stack
     }
     ;
 
