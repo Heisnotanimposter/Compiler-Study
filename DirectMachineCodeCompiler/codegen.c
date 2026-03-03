@@ -154,6 +154,74 @@ void emit_mov_rax_var(int offset) {
     }
 }
 
+// cmp rax, rbx -> 48 39 D8
+void emit_cmp_rax_rbx() {
+    emit_byte(0x48);
+    emit_byte(0x39);
+    emit_byte(0xD8);
+}
+
+// setz al -> 0F 94 C0
+void emit_set_eq() {
+    emit_byte(0x0F); emit_byte(0x94); emit_byte(0xC0);
+    // movzx rax, al -> 48 0F B6 C0
+    emit_byte(0x48); emit_byte(0x0F); emit_byte(0xB6); emit_byte(0xC0);
+}
+
+// setl al -> 0F 9C C0
+void emit_set_lt() {
+    emit_byte(0x0F); emit_byte(0x9C); emit_byte(0xC0);
+    emit_byte(0x48); emit_byte(0x0F); emit_byte(0xB6); emit_byte(0xC0);
+}
+
+// setg al -> 0F 9F C0
+void emit_set_gt() {
+    emit_byte(0x0F); emit_byte(0x9F); emit_byte(0xC0);
+    emit_byte(0x48); emit_byte(0x0F); emit_byte(0xB6); emit_byte(0xC0);
+}
+
+// test rax, rax -> 48 85 C0
+void emit_test_rax_rax() {
+    emit_byte(0x48);
+    emit_byte(0x85);
+    emit_byte(0xC0);
+}
+
+// JMP relative 32-bit: E9 <32-bit disp>
+int emit_jmp_placeholder() {
+    emit_byte(0xE9);
+    int patch_pos = pos;
+    emit_u32(0); // placeholder
+    return patch_pos;
+}
+
+// JZ relative 32-bit: 0F 84 <32-bit disp>
+int emit_jz_placeholder() {
+    emit_byte(0x0F);
+    emit_byte(0x84);
+    int patch_pos = pos;
+    emit_u32(0); // placeholder
+    return patch_pos;
+}
+
+// JNZ relative 32-bit: 0F 85 <32-bit disp>
+int emit_jnz_placeholder() {
+    emit_byte(0x0F);
+    emit_byte(0x85);
+    int patch_pos = pos;
+    emit_u32(0); // placeholder
+    return patch_pos;
+}
+
+void patch_jump_to_current(int patch_pos) {
+    // Current position - (patch_pos + 4)
+    uint32_t disp = (uint32_t)(pos - (patch_pos + 4));
+    code[patch_pos] = disp & 0xFF;
+    code[patch_pos + 1] = (disp >> 8) & 0xFF;
+    code[patch_pos + 2] = (disp >> 16) & 0xFF;
+    code[patch_pos + 3] = (disp >> 24) & 0xFF;
+}
+
 void emit_ret() {
     emit_byte(0xC3);
 }
